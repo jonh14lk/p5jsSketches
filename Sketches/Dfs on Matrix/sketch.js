@@ -1,21 +1,47 @@
-var dx = [-1, 1, 0, 0];
-var dy = [0, 0, 1, -1];
-var v = [];
-var stack = [];
-var visited = [];
-var curr_color = [];
-var line_color;
+class Stack {
+  constructor() {
+    this.items = [];
+  }
 
-function peek() {
-  if (stack.length > 0) {
-    return stack[stack.length - 1];
-  } else {
-    return [0, 0];
+  push(element) {
+    this.items.push(element);
+  }
+
+  pop() {
+    if (this.items.length > 0) {
+      return this.items.pop();
+    }
+  }
+
+  peek() {
+    if (this.items.length > 0) {
+      return this.items[this.items.length - 1];
+    } else {
+      return [0, 0];
+    }
+  }
+
+  empty() {
+    return this.items.length == 0;
+  }
+
+  size() {
+    return this.items.length;
   }
 }
 
+var n = 10;
+var m = 10;
+var dx = [-1, 1, 0, 0];
+var dy = [0, 0, 1, -1];
+var v = [];
+var visited = [];
+var curr_color = [];
+var st = new Stack();
+var line_color;
+
 function is_inside(xx, yy) {
-  if (xx >= 0 && xx < 10 && yy >= 0 && yy < 10) {
+  if (xx >= 0 && xx < n && yy >= 0 && yy < m) {
     return true;
   } else {
     return false;
@@ -23,11 +49,11 @@ function is_inside(xx, yy) {
 }
 
 function dfs() {
-  if (stack.length > 0) {
-    var x = peek()[0];
-    var y = peek()[1];
+  if (!st.empty()) {
+    var x = st.peek()[0];
+    var y = st.peek()[1];
 
-    stack.pop();
+    st.pop();
 
     visited[x][y] = 2;
 
@@ -38,7 +64,7 @@ function dfs() {
       if (is_inside(xx, yy) && !visited[xx][yy]) {
         if (v[xx][yy] == ".") {
           visited[xx][yy] = 1;
-          stack.push([xx, yy]);
+          st.push([xx, yy]);
         }
       }
     }
@@ -46,8 +72,8 @@ function dfs() {
 }
 
 function show() {
-  for (var i = 0; i < 10; i++) {
-    for (var j = 0; j < 10; j++) {
+  for (var i = 0; i < n; i++) {
+    for (var j = 0; j < m; j++) {
       if (v[i][j] == "#") {
         curr_color[i][j] = color(0, 0, 0);
       } else if (visited[i][j] != 2) {
@@ -58,27 +84,29 @@ function show() {
     }
   }
 
-  curr_color[peek()[0]][peek()[1]] = color(255, 215, 0);
+  curr_color[st.peek()[0]][st.peek()[1]] = color(255, 215, 0);
 }
 
 function init() {
-  for (var i = 0; i < 10; i++) {
+  for (var i = 0; i < n; i++) {
     visited[i] = [];
     v[i] = [];
     curr_color[i] = [];
-    for (var j = 0; j < 10; j++) {
+
+    for (var j = 0; j < m; j++) {
       visited[i][j] = 0;
       curr_color[i][j] = color(255, 255, 255);
       v[i][j] = ".";
     }
   }
 
-  v[9][1] = "#";
-  v[7][2] = "#";
-  v[5][3] = "#";
-  v[1][4] = "#";
-  v[2][7] = "#";
-  v[5][5] = "#";
+  for (var i = 0; i < floor(random(n * m)); i++) {
+    var x = floor(random(n));
+    var y = floor(random(m));
+    if (x != 0 || y != 0) {
+      v[x][y] = "#";
+    }
+  }
 }
 
 function get_ready() {
@@ -91,7 +119,7 @@ function setup() {
   createCanvas(400, 400); // cria a tela com 400 por 400
   frameRate(5); // definir um framerate baixo pra não ficar acelerado
   init();
-  stack.push([0, 0]);
+  st.push([0, 0]);
   line_color = 0;
 }
 
@@ -100,16 +128,16 @@ function draw() {
   background(51);
   get_ready();
 
-  for (var i = 0; i < 10; i++) {
-    for (var j = 0; j < 10; j++) {
-      var x = i * 40;
-      var y = j * 40;
+  for (var i = 0; i < n; i++) {
+    for (var j = 0; j < m; j++) {
+      var x = i * (400 / n);
+      var y = j * (400 / m);
 
       fill(curr_color[i][j]); // define a cor que vai ser usada para preencher as formas
 
       stroke(line_color); // define a cor a ser usada nas linhas em torno das formas
 
-      rect(x, y, 40, 40); // desenha um retangulo a partir da coordenada (x, y) e com width e height == 40 nesse caso
+      rect(x, y, 400 / n, 400 / m); // desenha um retangulo a partir da coordenada (x, y) e com width e height == 40 nesse caso
     }
   }
 }
