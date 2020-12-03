@@ -1,5 +1,6 @@
 var n = 8; // array size
 var v = [];
+var can_query;
 
 class Stack {
   constructor() {
@@ -32,6 +33,7 @@ class Stack {
 class SegmentTree {
   constructor() {
     this.tree = [];
+    this.status = [];
     this.parent = [];
     this.x = [];
     this.y = [];
@@ -40,9 +42,16 @@ class SegmentTree {
   resize() {
     while (this.tree.length < 4 * n) {
       this.tree.push(0);
+      this.status.push(false);
       this.parent.push(-1);
       this.x.push(0);
       this.y.push(0);
+    }
+  }
+
+  reset() {
+    for (var i = 0; i < this.tree.length; i++) {
+      this.status[i] = false;
     }
   }
 
@@ -97,10 +106,38 @@ class SegmentTree {
         }
       } else if (type == 1) {
         this.tree[i] = this.tree[2 * i] + this.tree[2 * i + 1];
-
-        console.log(l, r, i, this.tree[i]);
       }
     }
+  }
+
+  query(ql, qr) {
+    var st = new Stack();
+    var ans = 0;
+
+    st.push([0, n - 1, 1]);
+
+    while (!st.empty()) {
+      var l = st.peek()[0];
+      var r = st.peek()[1];
+      var i = st.peek()[2];
+
+      st.pop();
+
+      var mid = floor((l + r) / 2);
+
+      if (l > r || l > qr || r < ql) {
+        continue;
+      } else if (l >= ql && r <= qr) {
+        this.status[i] = true;
+        ans += this.tree[i];
+        continue;
+      }
+
+      st.push([l, mid, 2 * i]);
+      st.push([mid + 1, r, 2 * i + 1]);
+    }
+
+    return ans;
   }
 
   draw_tree() {
@@ -115,16 +152,15 @@ class SegmentTree {
 
       st.pop();
 
-      fill(255);
-      noStroke();
-      textSize(12);
-      textAlign(CENTER);
-      text(`[${l} ${r}]  ${this.tree[i]}`, this.x[i], this.y[i]);
+      if (!this.status[i]) {
+        noFill();
+        stroke(255);
+      } else {
+        fill(color(255, 255, 0));
+        stroke(color(0, 0, 10));
+      }
 
-      stroke(255);
-      noFill();
       rect(this.x[i] - 50, this.y[i] - 20, 100, 30);
-
       if (this.parent[i] != -1) {
         line(
           this.x[this.parent[i]],
@@ -133,6 +169,18 @@ class SegmentTree {
           this.y[i] - 20
         );
       }
+
+      if (!this.status[i]) {
+        fill(255);
+        noStroke();
+      } else {
+        fill(color(0, 0, 10));
+        noStroke();
+      }
+
+      textSize(12);
+      textAlign(CENTER);
+      text(`[${l}, ${r}] Sum = ${this.tree[i]}`, this.x[i], this.y[i]);
 
       if (l != r) {
         var mid = floor((l + r) / 2);
@@ -167,17 +215,41 @@ function setup() {
     createCanvas(nn * 112.5, nn * 62.5);
   }
 
+  frameRate(0.5);
+  can_query = false;
   init();
 }
 
 function draw() {
-  background(color(0, 0, 50));
+  background(color(0, 60, 250));
 
-  fill(255);
-  noStroke();
-  textAlign(CENTER);
-  textSize(25);
-  text(`Array = {${v}}`, width / 2, 20);
+  if (!can_query) {
+    fill(255);
+    noStroke();
+    textAlign(CENTER);
+    textSize(25);
+
+    text(`Array = {${v}}`, width / 2, 20);
+    can_query = true;
+  } else {
+    var l = floor(random(n));
+    var r = floor(random(n));
+
+    if (l > r) {
+      var aux = l;
+      l = r;
+      r = aux;
+    }
+
+    seg.reset();
+    var ans = seg.query(l, r);
+
+    fill(color(255, 255, 0));
+    noStroke();
+    textAlign(CENTER);
+    textSize(25);
+    text(`Query(${l}, ${r}) = ${ans}`, width / 2, 20);
+  }
 
   seg.draw_tree();
 }
