@@ -104,7 +104,7 @@ class SegmentTree {
           this.x[2 * i + 1] = this.x[i] + width / Math.pow(2, log);
           this.y[2 * i + 1] = this.y[i] + height_delta;
         }
-      } else if (type == 1) {
+      } else {
         this.tree[i] = this.tree[2 * i] + this.tree[2 * i + 1];
       }
     }
@@ -138,6 +138,41 @@ class SegmentTree {
     }
 
     return ans;
+  }
+
+  update(pos, value) {
+    var st = new Stack();
+
+    st.push([0, n - 1, 1, 0]);
+
+    while (!st.empty()) {
+      var l = st.peek()[0];
+      var r = st.peek()[1];
+      var i = st.peek()[2];
+      var type = st.peek()[3];
+
+      st.pop();
+
+      if (type == 0) {
+        this.status[i] = true;
+
+        if (l == r) {
+          this.tree[i] = value;
+        } else {
+          var mid = floor((l + r) / 2);
+
+          st.push([l, r, i, 1]);
+
+          if (pos <= mid) {
+            st.push([l, mid, 2 * i, 0]);
+          } else {
+            st.push([mid + 1, r, 2 * i + 1, 0]);
+          }
+        }
+      } else {
+        this.tree[i] = this.tree[2 * i] + this.tree[2 * i + 1];
+      }
+    }
   }
 
   draw_tree() {
@@ -232,23 +267,39 @@ function draw() {
     text(`Array = {${v}}`, width / 2, 20);
     can_query = true;
   } else {
-    var l = floor(random(n));
-    var r = floor(random(n));
+    var type = floor(random(2));
 
-    if (l > r) {
-      var aux = l;
-      l = r;
-      r = aux;
+    if (!type) {
+      var pos = floor(random(n));
+      var value = floor(random(20));
+
+      seg.reset();
+      seg.update(pos, value);
+
+      fill(color(255, 255, 0));
+      noStroke();
+      textAlign(CENTER);
+      textSize(25);
+      text(`Update(${pos}) = ${value}`, width / 2, 20);
+    } else {
+      var l = floor(random(n));
+      var r = floor(random(n));
+
+      if (l > r) {
+        var aux = l;
+        l = r;
+        r = aux;
+      }
+
+      seg.reset();
+      var ans = seg.query(l, r);
+
+      fill(color(255, 255, 0));
+      noStroke();
+      textAlign(CENTER);
+      textSize(25);
+      text(`Query(${l}, ${r}) = ${ans}`, width / 2, 20);
     }
-
-    seg.reset();
-    var ans = seg.query(l, r);
-
-    fill(color(255, 255, 0));
-    noStroke();
-    textAlign(CENTER);
-    textSize(25);
-    text(`Query(${l}, ${r}) = ${ans}`, width / 2, 20);
   }
 
   seg.draw_tree();
