@@ -1,6 +1,6 @@
 function setup() {
   get_tree();
-  createCanvas(787, 437);
+  createCanvas(2000, 600);
   tree.build();
   tree.build_draw();
   st.push([0, 0]);

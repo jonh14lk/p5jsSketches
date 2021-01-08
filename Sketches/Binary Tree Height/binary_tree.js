@@ -155,7 +155,7 @@ var st = new Stack();
 
 function get_tree() {
   while (true) {
-    n = floor(random(10)) + 3;
+    n = floor(random(5)) + 10;
     tree.init(n);
     tree.generate_tree();
     if (max_depth > 5) {
