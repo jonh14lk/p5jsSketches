@@ -1,26 +1,26 @@
-class Stack {
+class Queue {
   constructor() {
     this.items = [];
   }
 
-  push(element) {
+  enqueue(element) {
     this.items.push(element);
   }
 
-  pop() {
+  dequeue() {
     if (this.items.length > 0) {
-      return this.items.pop();
+      return this.items.shift();
     }
   }
 
-  peek() {
-    return this.items[this.items.length - 1];
+  front() {
+    return this.items[0];
   }
 
   empty() {
     return this.items.length == 0;
   }
-  
+
   size() {
     return this.items.length;
   }
@@ -76,7 +76,7 @@ class PriorityQueue {
   }
 }
 
-var pq = new PriorityQueue;
+var pq = new PriorityQueue();
 var INF = 99999;
 
 class Graph {
@@ -99,23 +99,13 @@ class Graph {
     this.cost = new Array(this.num_vertices);
     this.x = new Array(this.num_vertices);
     this.y = new Array(this.num_vertices);
-    var currx = 100,
-      curry = 170;
     for (var i = 0; i < this.num_vertices; i++) {
       this.graph[i] = new Array(this.num_vertices);
       this.cost[i] = new Array(this.num_vertices);
       this.visited[i] = false;
       this.dist[i] = INF;
-      this.x[i] = currx;
-      this.y[i] = curry;
-      if (i % 2 == 0) {
-        currx = currx + 150;
-        curry = curry - 100;
-      } else {
-        curry = curry + 200;
-      }
-    }
-    for (var i = 0; i < this.num_vertices; i++) {
+      this.x[i] = 0;
+      this.y[i] = 0;
       for (var j = 0; j < this.num_vertices; j++) {
         this.graph[i][j] = 0;
         this.cost[i][j] = INF;
@@ -124,14 +114,14 @@ class Graph {
   }
 
   add_edge(u, v, c) {
-    this.graph[u][v] = 1
-    this.graph[v][u] = 1
+    this.graph[u][v] = 1;
+    this.graph[v][u] = 1;
     this.cost[u][v] = c;
     this.cost[v][u] = c;
   }
 
   create_edges() {
-    this.num_edges = 14;
+    this.num_edges = 12;
     this.add_edge(0, 1, 4);
     this.add_edge(0, 7, 8);
     this.add_edge(1, 7, 11);
@@ -140,10 +130,8 @@ class Graph {
     this.add_edge(7, 8, 7);
     this.add_edge(2, 8, 2);
     this.add_edge(8, 6, 6);
-    this.add_edge(2, 3, 7);
     this.add_edge(6, 5, 2);
     this.add_edge(3, 5, 14);
-    this.add_edge(2, 5, 4);
     this.add_edge(3, 4, 9);
     this.add_edge(5, 4, 10);
   }
@@ -169,23 +157,58 @@ class Graph {
       }
     } else {
       for (var u = 0; u < this.num_vertices; u++) {
-        console.log(`${u} ${this.dist[u]}`);
+        //console.log(`${u} ${this.dist[u]}`);
       }
     }
   }
 
   draw() {
-    var st = new Stack();
+    noStroke();
+    textAlign(CENTER);
+    textSize(15);
+    fill(color(255, 255, 0));
+    rect(800, 10, 20, 20);
+    fill(color(0, 0, 0));
+    text(`Visited vertex`, 875, 25);
+    fill(color(0, 150, 255));
+    rect(800, 50, 20, 20);
+    fill(color(0, 0, 0));
+    text(`Vertex in priority queue`, 908, 65);
+    fill(color(255, 255, 255));
+    rect(800, 90, 20, 20);
+    fill(color(0, 0, 0));
+    text(`Not visited vertex`, 890, 105);
+
+    var q = new Queue();
     var vis = new Array(this.num_vertices);
     for (var u = 0; u < this.num_vertices; u++) {
       vis[u] = false;
     }
-    st.push([0, -1]);
-    while (!st.empty()) {
-      var parent = st.peek()[1];
-      var i = st.peek()[0];
-      st.pop();
-      vis[i] = true;
+    q.enqueue([0, -1, -1]);
+    var currx = 100;
+    var curry = 170;
+    var flag = true;
+
+    while (!q.empty()) {
+      var parent = q.front()[1];
+      var i = q.front()[0];
+      var parent_cost = q.front()[2];
+      q.dequeue();
+
+      if (vis[i] == false) {
+        vis[i] = true;
+        this.x[i] = currx;
+        this.y[i] = curry;
+
+        if (flag) {
+          currx = currx + 150;
+          curry = curry - 100;
+        } else {
+          curry = curry + 200;
+        }
+        flag = (flag + 1) % 2;
+      }
+
       if (this.visited[i] == true) {
         fill(color(255, 255, 0));
       } else if (pq.find(i) == true) {
@@ -193,14 +216,17 @@ class Graph {
       } else {
         fill(color(255, 255, 255));
       }
+
       stroke(color(0, 0, 10));
-      rect(this.x[i] - 50, this.y[i] - 20, 100, 30);
+      rect(this.x[i] - 50, this.y[i] - 30, 100, 30);
       if (parent != -1) {
-        line(
-          this.x[parent],
-          this.y[parent] + 10,
-          this.x[i] - 15,
-          this.y[i] - 20
+        line(this.x[parent], this.y[parent], this.x[i], this.y[i]);
+        textSize(12);
+        fill(color(0, 150, 255));
+        text(
+          `${parent_cost}`,
+          (this.x[parent] + this.x[i]) / 2,
+          (this.y[parent] + this.y[i]) / 2
         );
       }
       fill(color(0, 0, 10));
@@ -208,20 +234,21 @@ class Graph {
       textSize(10);
       textAlign(CENTER);
       if (this.dist[i] == INF) {
-        text(`Node: ${i}, Dist: INF`, this.x[i], this.y[i]);
+        text(`Vertex: ${i}, Dist: INF`, this.x[i], this.y[i] - 10);
       } else {
-        text(`Node: ${i}, Dist: ${this.dist[i]}`, this.x[i], this.y[i]);
+        text(`Vertex: ${i}, Dist: ${this.dist[i]}`, this.x[i], this.y[i] - 10);
       }
+
       for (var u = 0; u < this.num_vertices; u++) {
         if (this.graph[i][u] == 1 && vis[u] == false) {
-          st.push([u, i]);
+          q.enqueue([u, i, this.cost[i][u]]);
         }
       }
     }
   }
 }
 
-var g = new Graph;
+var g = new Graph();
 
 function setup() {
   createCanvas(1000, 600);
